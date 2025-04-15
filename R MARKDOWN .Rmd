@@ -1,0 +1,112 @@
+---
+title: "Event Management System Analysis"
+author: "Your Name"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+library(R6)
+library(readr)
+library(dplyr)
+library(ggplot2)
+```
+
+# Introduction
+
+This report provides descriptive analytics on the Event Management System. The focus is on user roles, event statuses, ticket refunds, and their social and ethical implications.
+
+# Data Loading
+
+```{r load-data}
+# Load datasets with error handling
+EventAnalyzer <- R6Class("EventAnalyzer",
+  public = list(
+    users = NULL,
+    events = NULL,
+    bookings = NULL,
+    registrations = NULL,
+    refunds = NULL,
+
+    initialize = function(users_path, events_path, bookings_path, registrations_path, refunds_path) {
+      tryCatch({
+        self$users <- read_csv(users_path)
+        self$events <- read_csv(events_path)
+        self$bookings <- read_csv(bookings_path)
+        self$registrations <- read_csv(registrations_path)
+        self$refunds <- read_csv(refunds_path)
+        message("Data loaded successfully.")
+      }, error = function(e) {
+        stop("Error loading data: ", e$message)
+      })
+    },
+
+    summarize_event_status = function() {
+      self$events %>% 
+        group_by(status) %>% 
+        summarise(total = n()) %>% 
+        ggplot(aes(x = status, y = total, fill = status)) +
+        geom_col() + 
+        labs(title = "Event Status Distribution", x = "Status", y = "Count")
+    },
+
+    analyze_refunds = function() {
+      self$refunds %>% 
+        group_by(status) %>% 
+        summarise(total = n()) %>% 
+        ggplot(aes(x = status, y = total, fill = status)) +
+        geom_col() + 
+        labs(title = "Refund Status Analysis", x = "Refund Status", y = "Count")
+    },
+
+    role_distribution = function() {
+      self$users %>% 
+        group_by(role) %>% 
+        summarise(total = n()) %>% 
+        ggplot(aes(x = role, y = total, fill = role)) +
+        geom_bar(stat = "identity") + 
+        labs(title = "User Role Distribution", x = "Role", y = "Number of Users")
+    }
+  )
+)
+
+analyzer <- EventAnalyzer$new("users.csv", "events.csv", "bookings.csv", "registrations.csv", "refunds.csv")
+```
+
+# Descriptive Analytics
+
+## Event Status Distribution
+```{r event-status}
+analyzer$summarize_event_status()
+```
+
+**Interpretation**: A comparison between active and canceled events can help understand the volatility or stability in event planning.
+
+## Refund Status Patterns
+```{r refund-status}
+analyzer$analyze_refunds()
+```
+
+**Insight**: This reveals the fairness of the refund system and the volume of refund handling.
+
+## User Role Distribution
+```{r user-roles}
+analyzer$role_distribution()
+```
+
+**Observation**: Analyzing user engagement across different roles supports planning of user-specific features and services.
+
+# Ethical & Social Considerations
+
+- **Fair Refund Policy**: Ensuring transparency in cancellations and refunds builds trust.
+- **Inclusive Events**: Participation across attendees and organizers reflects the inclusivity of the platform.
+- **Cancellation Impact**: Frequent cancellations may reflect planning issues or social/environmental interferences.
+
+# Conclusion
+
+This analysis highlights key engagement trends and social implications of event management data. These insights aid in designing equitable and efficient systems for users.
